@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>QGov Kz</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body { margin:0; font-family:'Segoe UI', sans-serif; background:#f5f5f5; }
+header.main-header { background:#007bff; color:white; padding:1rem; text-align:center; }
+
+.module { background:white; padding:1rem; margin-bottom:1rem; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+.status-bar span { display:inline-block; margin-right:0.5rem; padding:0.25rem 0.5rem; border-radius:4px; background:#e9ecef;}
+.status-bar .active { background:#28a745; color:white;}
+.task-card { border:1px solid #dee2e6; border-radius:6px; padding:0.75rem; margin-bottom:0.5rem;}
+.role-buttons button { margin-right:0.5rem; margin-bottom:1rem; }
+
+
+.resident-header {
+background-color:#e0e0e0;
+padding:15px 30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo { font-size:28px; font-weight:bold; }
+nav ul { list-style:none; margin:0; padding:0; display:flex; gap:25px; }
+nav ul li a { text-decoration:none; color:black; font-size:20px; cursor:pointer; }
+nav ul li a:hover { text-decoration:underline; }
+
+main { padding:40px 60px; }
+.articles { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;}
+.card { background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.card:hover { transform:translateY(-5px); }
+
+.month {
+  width: 300px;
+  border: 12px solid #4a4fd4;
+  background: #4a4fd4;
+  box-sizing: border-box;
+}
+
+.month-title {
+  color: white;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.month-inner {
+  background: white;
+  padding: 10px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day {
+  height: 35px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+
+.day:hover { background:#eef; }
+
+#report {
+  width: 220px;
+  height: 120px;
+  border: 2px solid #4a4fd4;
+  padding: 10px;
+  background: white;
+  margin-bottom: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="main-header">
+<h1>QGov - Qazaqstan Government</h1>
+<p>Цифровая платформа госуслуг Казахстана</p>
+</header>
+
+<div class="container my-4">
+
+<div id="roleSelection">
+<h2>Здравствуйте! Выберите, кем вы являетесь:</h2>
+<div class="role-buttons">
+<button class="btn btn-primary" onclick="showRole('resident')">Гражданин</button>
+<button class="btn btn-primary" onclick="showRole('employee')">Сотрудник</button>
+<button class="btn btn-primary" onclick="showRole('analyst')">Контрольный аналитик</button>
+</div>
+</div>
+
+
+<div id="residentView" style="display:none;">
+
+<div class="resident-header">
+<div class="logo">Гражданин</div>
+<nav>
+<ul>
+<li><a onclick="showComplaintForm()">Написать запрос</a></li>
+<li><a>Помощь</a></li>
+<li><a>Мой кабинет</a></li>
+<li><a>Написать отзыв</a></li>
+<li><a>О портале</a></li>
+<li><a onclick="goBack()">Назад</a></li>
+</ul>
+</nav>
+</div>
+
+<main id="infoSection">
+<h1>Полезная информация</h1>
+<div class="articles">
+<div class="card">
+<h3><span style="color: blue;">Как подать обращение правильно</span></h3>
+<p>Пошаговая инструкция по созданию заявки.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Сроки рассмотрения заявок</span></h3>
+<p>Сколько времени занимает обработка обращений.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Приоритеты городских служб</span></h3>
+<p>Какие обращения считаются срочными.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Безопасность персональных данных</span></h3>
+<p>Как портал защищает ваши данные.</p>
+</div>
+</div>
+</main>
+
+<div id="complaintSection" style="display:none;" class="container my-4">
+<div class="module">
+<h3>Отправить запрос</h3>
+<form>
+<div class="mb-3">
+<label class="form-label">Категория проблемы</label>
+<select class="form-select">
+<option>Свет</option>
+<option>Мусор</option>
+<option>Яма</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="form-label">Описание</label>
+<textarea class="form-control" rows="2"></textarea>
+</div>
+<div class="mb-3">
+<label class="form-label">Фото</label>
+<input type="file" class="form-control">
+</div>
+<button type="button" class="btn btn-primary">Отправить заявку</button>
+<button type="button" class="btn btn-secondary" onclick="hideComplaintForm()">Назад</button>
+</form>
+</div>
+</div>
+
+</div>
+
+
+<div id="employeeView" style="display:none;">
+<div class="module">
+<h3>Актуальные запросы</h3>
+
+<div class="task-card">
+<strong>Задача:</strong> Яма на ул. Олимпийская, 23<br>
+<strong>Приоритет:</strong> Высокий<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+<div class="task-card">
+<strong>Задача:</strong> Мусор на проспекте Шакарим, 12<br>
+<strong>Приоритет:</strong> Средний<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+<div class="task-card">
+<strong>Задача:</strong>  Свет на ул. Глинки, 23<br>
+<strong>Приоритет:</strong> Низкий<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+
+<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
+</div>
+</div>
+
+
+<div id="analystView" style="display:none;">
+<div class="module">
+<h3>Рейтинг активности граждан</h3>
+<ul>
+<li>Асылбек Т. – 16 заявок <i> Городской герой</i></li>
+<li>Асылбек Т. – 12 заявок <i>Помощник Города</i></li>
+<li>Назерке А. – 9 заявок<i> Активный</i></li>
+</ul>
+</div>
+
+<div class="module">
+<h3>Календарь отчетов</h3>
+
+<div id="report">Нажми на день</div>
+
+<div class="month">
+<div class="month-title">Февраль</div>
+<div class="month-inner">
+<div class="days">
+<button class="day" data-day="1">1</button>
+<button class="day" data-day="2">2</button>
+<button class="day" data-day="3">3</button>
+<button class="day" data-day="4">4</button>
+<button class="day" data-day="5">5</button>
+<button class="day" data-day="6">6</button>
+<button class="day" data-day="7">7</button>
+<button class="day" data-day="8">8</button>
+<button class="day" data-day="9">9</button>
+<button class="day" data-day="10">10</button>
+<button class="day" data-day="11">11</button>
+<button class="day" data-day="12">12</button>
+<button class="day" data-day="13">13</button>
+<button class="day" data-day="14">14</button>
+<button class="day" data-day="15">15</button>
+<button class="day" data-day="16">16</button>
+<button class="day" data-day="17">17</button>
+<button class="day" data-day="18">18</button>
+<button class="day" data-day="19">19</button>
+<button class="day" data-day="20">20</button>
+<button class="day" data-day="21">21</button>
+<button class="day" data-day="22">22</button>
+<button class="day" data-day="23">23</button>
+<button class="day" data-day="24">24</button>
+<button class="day" data-day="25">25</button>
+<button class="day" data-day="26">26</button>
+<button class="day" data-day="27">27</button>
+<button class="day" data-day="28">28</button>
+</div>
+</div>
+</div>
+<p> <a href="https://products.aspose.app/gis/map/kz"> КАРТА ГОРОДА ПО ЗАПРОСАМ ГРАЖДАН</a> <br>
+<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button></br>
+
+</div>
+
+</div>
+
+<script>
+function showRole(role){
+document.getElementById('roleSelection').style.display='none';
+document.getElementById('residentView').style.display='none';
+document.getElementById('employeeView').style.display='none';
+document.getElementById('analystView').style.display='none';
+
+if(role==='resident') document.getElementById('residentView').style.display='block';
+if(role==='employee') document.getElementById('employeeView').style.display='block';
+if(role==='analyst') document.getElementById('analystView').style.display='block';
+}
+
+function goBack(){
+document.getElementById('roleSelection').style.display='block';
+document.getElementById('residentView').style.display='none';
+document.getElementById('employeeView').style.display='none';
+document.getElementById('analystView').style.display='none';
+}
+
+function showComplaintForm(){
+document.getElementById('infoSection').style.display='none';
+document.getElementById('complaintSection').style.display='block';
+}
+
+function hideComplaintForm(){
+document.getElementById('infoSection').style.display='block';
+document.getElementById('complaintSection').style.display='none';
+}
+
+const days = document.querySelectorAll('.day');
+const report = document.getElementById('report');
+
+days.forEach(day=>{
+day.onclick=()=>{
+report.textContent="Отчет за день "+day.dataset.day;
+};
+});
+</script>
+
+</body>
+</html>
+
