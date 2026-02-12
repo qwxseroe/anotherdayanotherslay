@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>QGov Kz</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body { margin:0; font-family:'Segoe UI', sans-serif; background:#f5f5f5; }
+header.main-header { background:#007bff; color:white; padding:1rem; text-align:center; }
+
+.module { background:white; padding:1rem; margin-bottom:1rem; border-radius:8px; box-shadow:0 0 8px rgba(0,0,0,0.1);}
+.status-bar span { display:inline-block; margin-right:0.5rem; padding:0.25rem 0.5rem; border-radius:4px; background:#e9ecef;}
+.status-bar .active { background:#28a745; color:white;}
+.task-card { border:1px solid #dee2e6; border-radius:6px; padding:0.75rem; margin-bottom:0.5rem;}
+.role-buttons button { margin-right:0.5rem; margin-bottom:1rem; }
+
+
+.resident-header {
+background-color:#e0e0e0;
+padding:15px 30px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo { font-size:28px; font-weight:bold; }
+nav ul { list-style:none; margin:0; padding:0; display:flex; gap:25px; }
+nav ul li a { text-decoration:none; color:black; font-size:20px; cursor:pointer; }
+nav ul li a:hover { text-decoration:underline; }
+
+main { padding:40px 60px; }
+.articles { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px;}
+.card { background:white; padding:20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.card:hover { transform:translateY(-5px); }
+
+.month {
+  width: 300px;
+  border: 12px solid #4a4fd4;
+  background: #4a4fd4;
+  box-sizing: border-box;
+}
+
+.month-title {
+  color: white;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.month-inner {
+  background: white;
+  padding: 10px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.day {
+  height: 35px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
+
+.day:hover { background:#eef; }
+
+#report {
+  width: 220px;
+  height: 120px;
+  border: 2px solid #4a4fd4;
+  padding: 10px;
+  background: white;
+  margin-bottom: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<header class="main-header">
+<h1>QGov - Qazaqstan Government</h1>
+<p>Цифровая платформа госуслуг Казахстана</p>
+</header>
+
+<div class="container my-4">
+<div id="digitalIdLogin" class="container my-4">
+  <h2>Вход через цифровой ID</h2>
+  <div class="mb-3">
+    <label for="digitalIdInput" class="form-label">Введите ваш цифровой ID</label>
+    <input type="text" id="digitalIdInput" class="form-control" placeholder="1234-5678-9012">
+  </div>
+  <button class="btn btn-primary" id="digitalIdLoginBtn">Войти через ID</button>
+  <p id="loginMessage" style="color:red; margin-top:10px;"></p>
+</div>
+
+<div id="roleSelection">
+<h2>Здравствуйте! Выберите, кем вы являетесь:</h2>
+<div class="role-buttons">
+<button class="btn btn-primary" onclick="showRole('resident')">Гражданин</button>
+<button class="btn btn-primary" onclick="showRole('employee')">Сотрудник</button>
+<button class="btn btn-primary" onclick="showRole('analyst')">Контрольный аналитик</button>
+</div>
+</div>
+
+
+<div id="residentView" style="display:none;">
+
+<div class="resident-header">
+<div class="logo">Гражданин</div>
+<nav>
+<ul>
+<li><a onclick="showComplaintForm()">Написать запрос</a></li>
+<li><a>Помощь</a></li>
+<li><a>Мой кабинет</a></li>
+<li><a>Написать отзыв</a></li>
+<li><a>О портале</a></li>
+<li><a onclick="goBack()">Назад</a></li>
+</ul>
+</nav>
+</div>
+
+<main id="infoSection">
+<h1>Полезная информация</h1>
+<div class="articles">
+<div class="card">
+<h3><span style="color: blue;">Как подать обращение правильно</span></h3>
+<p>Пошаговая инструкция по созданию заявки.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Сроки рассмотрения заявок</span></h3>
+<p>Сколько времени занимает обработка обращений.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Приоритеты городских служб</span></h3>
+<p>Какие обращения считаются срочными.</p>
+</div>
+<div class="card">
+<h3><span style="color: blue;">Безопасность персональных данных</span></h3>
+<p>Как портал защищает ваши данные.</p>
+</div>
+
+</div>
+</main>
+<div id="myRequests" class="container my-4">
+<div class="module">
+<h3>Мои заявки</h3>
+<div id="residentTasks"></div>
+</div>
+</div>
+
+<div id="complaintSection" style="display:none;" class="container my-4">
+<div class="module">
+<h3>Отправить запрос</h3>
+<form>
+<div class="mb-3">
+<label class="form-label">Категория проблемы</label>
+<select class="form-select">
+<option>Свет</option>
+<option>Мусор</option>
+<option>Яма</option>
+<option>Аварийные деревья</option>
+<option>Утечка воды</option>
+<option>Общественный транспорт</option>
+<option>Знаки на дорогах</option>
+<option>Освещение</option>
+<option>Опасный пешеход</option>
+</select>
+</div>
+<div class="mb-3">
+<label class="form-label">Описание</label>
+<textarea class="form-control" rows="2"></textarea>
+</div>
+<div class="mb-3">
+<label class="form-label">Фото</label>
+<input type="file" class="form-control">
+</div>
+<button type="button" class="btn btn-primary">Отправить заявку</button>
+<button type="button" class="btn btn-secondary" onclick="hideComplaintForm()">Назад</button>
+</form>
+</div>
+</div>
+
+</div>
+<!-- ИИ помощник -->
+<div id="aiHelpIcon" style="
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background:#007bff;
+    color:white;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    cursor:pointer;
+    z-index:9999;
+">?</div>
+
+<div id="aiChatWindow" style="
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 300px;
+    max-height: 400px;
+    background:white;
+    border:2px solid #007bff;
+    border-radius:8px;
+    display:none;
+    flex-direction: column;
+    z-index:9999;
+    overflow:hidden;
+">
+    <div id="aiChatMessages" style="flex:1; padding:10px; overflow-y:auto; font-size:14px;"></div>
+    <div style="display:flex; border-top:1px solid #ccc;">
+        <input id="aiChatInput" type="text" placeholder="Напишите вопрос..." style="flex:1; padding:5px; border:none; outline:none;">
+        <button id="aiChatSend" style="background:#007bff; color:white; border:none; padding:5px 10px; cursor:pointer;">Отправить</button>
+    </div>
+</div>
+
+</div>
+
+<div id="employeeView" style="display:none;">
+<div class="module">
+<h3>Актуальные запросы</h3>
+
+<div class="task-card">
+<strong>Задача:</strong> Яма на ул. Олимпийская, 23<br>
+<strong>Приоритет:</strong> Высокий<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+<div class="task-card">
+<strong>Задача:</strong> Мусор на проспекте Шакарим, 12<br>
+<strong>Приоритет:</strong> Средний<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+<div class="task-card">
+<strong>Задача:</strong>  Свет на ул. Глинки, 23<br>
+<strong>Приоритет:</strong> Низкий<br>
+<input type="file"><br>
+<input type="file"><br>
+<button class="btn btn-success btn-sm mt-1">Отметить выполненной</button>
+</div>
+
+
+<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>
+</div>
+</div>
+
+
+<div id="analystView" style="display:none;">
+<div class="module">
+<h3>Рейтинг активности граждан</h3>
+<ul>
+<li>Асылбек Т. – 16 заявок <i> Городской герой</i></li>
+<li>Ерлан Т. – 12 заявок <i>Помощник Города</i></li>
+<li>Назерке А. – 9 заявок<i> Активный</i></li>
+</ul>
+</div>
+
+<div class="module">
+<h3>Календарь отчетов</h3>
+
+<div id="report">Нажми на день</div>
+
+<div class="month">
+<div class="month-title">Февраль</div>
+<div class="month-inner">
+<div class="days">
+<button class="day" data-day="1">1</button>
+<button class="day" data-day="2">2</button>
+<button class="day" data-day="3">3</button>
+<button class="day" data-day="4">4</button>
+<button class="day" data-day="5">5</button>
+<button class="day" data-day="6">6</button>
+<button class="day" data-day="7">7</button>
+<button class="day" data-day="8">8</button>
+<button class="day" data-day="9">9</button>
+<button class="day" data-day="10">10</button>
+<button class="day" data-day="11">11</button>
+<button class="day" data-day="12">12</button>
+<button class="day" data-day="13">13</button>
+<button class="day" data-day="14">14</button>
+<button class="day" data-day="15">15</button>
+<button class="day" data-day="16">16</button>
+<button class="day" data-day="17">17</button>
+<button class="day" data-day="18">18</button>
+<button class="day" data-day="19">19</button>
+<button class="day" data-day="20">20</button>
+<button class="day" data-day="21">21</button>
+<button class="day" data-day="22">22</button>
+<button class="day" data-day="23">23</button>
+<button class="day" data-day="24">24</button>
+<button class="day" data-day="25">25</button>
+<button class="day" data-day="26">26</button>
+<button class="day" data-day="27">27</button>
+<button class="day" data-day="28">28</button>
+</div>
+</div>
+</div>
+<p> <a href="https://products.aspose.app/gis/map/kz"> КАРТА ГОРОДА ПО ЗАПРОСАМ ГРАЖДАН</a> <br>
+<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button></br>
+
+
+
+</div>
+<script>
+const digitalIdLogin = document.getElementById('digitalIdLogin');
+const digitalIdInput = document.getElementById('digitalIdInput');
+const digitalIdLoginBtn = document.getElementById('digitalIdLoginBtn');
+const loginMessage = document.getElementById('loginMessage');
+
+digitalIdLoginBtn.onclick = () => {
+    const id = digitalIdInput.value.trim();
+    if(id.length < 8){ // простая проверка
+        loginMessage.textContent = "Напишите цифровой ID полностью";
+        return;
+    }
+
+    // Успешная "авторизация"
+    loginMessage.style.color = "green";
+    loginMessage.textContent = "ID подтвержден! Вы можете выбрать роль.";
+
+    // Показываем выбор роли
+    document.getElementById('roleSelection').style.display = "block";
+    // Скрываем форму входа
+    digitalIdLogin.style.display = "none";
+};
+
+// Сначала скрываем выбор роли, пока не введён ID
+document.getElementById('roleSelection').style.display = "none";
+</script>
+
+<script>
+let tasks = [];
+
+// --------- ВЫБОР РОЛИ --------------
+function showRole(role){
+    document.getElementById('roleSelection').style.display='none';
+    document.getElementById('residentView').style.display='none';
+    document.getElementById('employeeView').style.display='none';
+    document.getElementById('analystView').style.display='none';
+
+    if(role==='resident') document.getElementById('residentView').style.display='block';
+    if(role==='employee') {
+        document.getElementById('employeeView').style.display='block';
+        renderTasks();
+    }
+    if(role==='analyst') document.getElementById('analystView').style.display='block';
+}
+
+function goBack(){
+    document.getElementById('roleSelection').style.display='block';
+    document.getElementById('residentView').style.display='none';
+    document.getElementById('employeeView').style.display='none';
+    document.getElementById('analystView').style.display='none';
+}
+
+// --------- Показ/скрытие формы заявки ----------
+function showComplaintForm(){
+    document.getElementById('infoSection').style.display='none';
+    document.getElementById('complaintSection').style.display='block';
+}
+function hideComplaintForm(){
+    document.getElementById('infoSection').style.display='block';
+    document.getElementById('complaintSection').style.display='none';
+}
+
+// --------- АВТОАНАЛИЗ ЗАПРОСА ----------
+function analyzeText(text){
+    text = text.toLowerCase();
+    let category = "Другое";
+    let priority = "Средний";
+    let sla = "3 дня";
+    let aiComment = "Стандартное обращение.";
+
+    if(text.includes("яма") || text.includes("дорог") || text.includes("асфальт")){
+        category = "Яма";
+        priority = "Высокий";
+        sla = "2 дня";
+        aiComment = "Обнаружена проблема дорожного покрытия.";
+    }
+
+    if(text.includes("мусор") || text.includes("свалк")){
+        category = "Мусор";
+        priority = "Средний";
+        sla = "3 дня";
+        aiComment = "Обращение связано с санитарным состоянием.";
+    }
+
+    if(text.includes("свет") || text.includes("фонарь")){
+        category = "Свет";
+        priority = "Низкий";
+        sla = "5 дней";
+        aiComment = "Проблема освещения.";
+    }
+
+    if(text.includes("опасно") || text.includes("авария") || text.includes("дети")){
+        priority = "Критический";
+        sla = "1 день";
+        aiComment += " Обнаружены признаки повышенной опасности.";
+    }
+
+    return {category, priority, sla, aiComment};
+}
+
+// --------- ОБРАБОТКА ОТПРАВКИ ЗАЯВКИ ----------
+document.addEventListener("DOMContentLoaded", function(){
+
+    const sendButton = document.querySelector('#complaintSection .btn-primary');
+    const descriptionInput = document.querySelector('#complaintSection textarea');
+    const employeeModule = document.querySelector('#employeeView .module');
+    const residentTasks = document.getElementById('residentTasks');
+
+    sendButton.addEventListener('click', function(){
+        if(descriptionInput.value.trim()===""){
+            alert("Введите описание проблемы");
+            return;
+        }
+
+        let analysis = analyzeText(descriptionInput.value);
+
+        let newTask = {
+            id: Date.now(),
+            category: analysis.category,
+            description: descriptionInput.value,
+            status: "Отправлена",
+            priority: analysis.priority,
+            sla: analysis.sla,
+            aiComment: analysis.aiComment,
+            createdAt: Date.now()
+        };
+
+        tasks.push(newTask);
+
+        alert("Заявка отправлена!");
+        descriptionInput.value="";
+        hideComplaintForm();
+
+        renderTasks();
+        renderResidentTasks();
+    });
+
+    // --------- ОТОБРАЖЕНИЕ ЗАЯВОК СОТРУДНИКА ----------
+    function renderTasks(){
+        employeeModule.innerHTML = "<h3>Актуальные запросы</h3>";
+
+        if(tasks.length===0){
+            employeeModule.innerHTML += "<p>Заявок пока нет</p>";
+            employeeModule.innerHTML += `<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>`;
+            return;
+        }
+
+        tasks.forEach(task=>{
+            checkExpired(task);
+
+            let card = document.createElement('div');
+            card.className="task-card";
+
+            card.innerHTML = `
+                <strong>Категория:</strong> ${task.category}<br>
+                <strong>Описание:</strong> ${task.description}<br>
+                <strong>AI-анализ:</strong> ${task.aiComment}<br>
+                <strong>Приоритет:</strong> ${task.priority}<br>
+                <strong>Срок:</strong> ${task.sla}<br>
+                <strong>Статус:</strong> ${task.status}<br>
+                <button class="btn btn-warning btn-sm mt-1" onclick="takeTask(${task.id})">Взять в работу</button>
+                <button class="btn btn-success btn-sm mt-1" onclick="completeTask(${task.id})">Выполнена</button>
+            `;
+            employeeModule.appendChild(card);
+        });
+
+        employeeModule.innerHTML += `<button class="btn btn-secondary mt-3" onclick="goBack()">Назад</button>`;
+    }
+
+    // --------- ОТОБРАЖЕНИЕ ЗАЯВОК ГРАЖДАНИНА ----------
+    function renderResidentTasks(){
+        residentTasks.innerHTML = "";
+
+        if(tasks.length===0){
+            residentTasks.innerHTML = "<p>У вас пока нет заявок</p>";
+            return;
+        }
+
+        tasks.forEach(task=>{
+            checkExpired(task);
+
+            let color = "black";
+            if(task.status==="Отправлена") color="orange";
+            if(task.status==="В работе") color="blue";
+            if(task.status==="Выполнена") color="green";
+            if(task.status==="Просрочена") color="red";
+
+            let card = document.createElement('div');
+            card.className="task-card";
+
+            card.innerHTML = `
+                <strong>${task.category}</strong><br>
+                ${task.description}<br>
+                <strong>AI-анализ:</strong> ${task.aiComment}<br>
+                Статус: <span style="color:${color}; font-weight:bold;">${task.status}</span>
+            `;
+            residentTasks.appendChild(card);
+        });
+    }
+
+    // --------- СТАТУСЫ ----------
+    window.takeTask = function(id){
+        let task = tasks.find(t=>t.id===id);
+        if(task && task.status==="Отправлена"){
+            task.status="В работе";
+            renderTasks();
+            renderResidentTasks();
+        }
+    }
+
+    window.completeTask = function(id){
+        let task = tasks.find(t=>t.id===id);
+        if(task){
+            task.status="Выполнена";
+            renderTasks();
+            renderResidentTasks();
+        }
+    }
+
+    function checkExpired(task){
+        let oneMinute = 60000; // для демо 1 минута
+        if(task.status!=="Выполнена" &&
+           task.status!=="Просрочена" &&
+           (Date.now() - task.createdAt > oneMinute)){
+            task.status="Просрочена";
+        }
+    }
+
+    // --------- КАЛЕНДАРЬ ----------
+    const days = document.querySelectorAll('.day');
+    const report = document.getElementById('report');
+    days.forEach(day=>{
+        day.onclick=()=>{
+            report.textContent="Отчет за день "+day.dataset.day;
+        };
+    });
+
+});
+</script>
+<script>
+const aiIcon = document.getElementById('aiHelpIcon');
+const aiWindow = document.getElementById('aiChatWindow');
+const aiMessages = document.getElementById('aiChatMessages');
+const aiInput = document.getElementById('aiChatInput');
+const aiSend = document.getElementById('aiChatSend');
+
+// открыть/закрыть окно ИИ
+aiIcon.onclick = () => {
+    aiWindow.style.display = (aiWindow.style.display==="none" || aiWindow.style.display==="") ? "flex" : "none";
+}
+
+// простой ИИ-помощник
+function getAIResponse(text){
+    text = text.toLowerCase();
+    if(text.includes("как подать заявку") || text.includes("как создать заявку")) return "Чтобы подать заявку, нажмите на 'Написать запрос' и заполните форму.";
+    if(text.includes("статус")) return "Вы можете отслеживать статус своих заявок в разделе 'Мой кабинет'.";
+    if(text.includes("свет") || text.includes("яма")) return "Если проблема со светом или ямой, система автоматически присвоит приоритет и срок.";
+    if(text.includes("мусор")) return "Свалки и мусор обрабатываются в течение 2-3 дней по стандартному SLA.";
+    if(text.includes("контакт") || text.includes("связь")) return "Для связи с городскими службами используйте 'Написать запрос' или 'Написать отзыв'.";
+    return "Извините, я пока не знаю ответ на этот вопрос. Попробуйте переформулировать или напишите конкретнее.";
+}
+
+// отправка сообщения
+aiSend.onclick = () => {
+    const userText = aiInput.value.trim();
+    if(userText==="") return;
+
+    const userMsg = document.createElement('div');
+    userMsg.style.textAlign="right";
+    userMsg.style.marginBottom="5px";
+    userMsg.innerHTML = `<strong>Вы:</strong> ${userText}`;
+    aiMessages.appendChild(userMsg);
+
+    const aiMsg = document.createElement('div');
+    aiMsg.style.textAlign="left";
+    aiMsg.style.marginBottom="5px";
+    aiMsg.innerHTML = `<strong>AI:</strong> ${getAIResponse(userText)}`;
+    aiMessages.appendChild(aiMsg);
+
+    aiMessages.scrollTop = aiMessages.scrollHeight;
+    aiInput.value = "";
+}
+
+// Enter для отправки
+aiInput.addEventListener("keypress", function(e){
+    if(e.key==="Enter") aiSend.click();
+});
+</script>
+
+
+
+
+
+</body>
+</html>
